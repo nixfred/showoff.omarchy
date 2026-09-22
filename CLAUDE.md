@@ -8,11 +8,31 @@
 > omarchy, it's to show a windows or mac person."* Re-scoped the same night
 > from plugin to **application** (below).
 
-**Status: scaffold + research. No act is built.** `app/shell.qml` is a
-takeover-and-mode-gate stub (fullscreen overlay on every screen, exclusive
-keyboard, countdown → auto or menu, Esc×2 to leave) that has **never been
-run** — runtime unverified. `bin/showoff` launches it. All 22 acts are in
+**Status: scaffold verified, no act built.** `app/shell.qml` is a
+takeover-and-mode-gate stub; `bin/showoff` launches it. All 22 acts are in
 (`ACTS.md`); the engine and every act remain to be written.
+
+### Verified on vic, 2026-09-21 (Fred's go; three runs, screenshots pixel-checked)
+
+| Check | Result |
+|---|---|
+| Loads as its own process (`quickshell -n -p app/`) | yes, "Configuration Loaded", no QML errors |
+| Fullscreen layer above everything | Hyprland lists `showoff-omarchy` 1920×1080 at Overlay level; scrim leaves the desktop readable |
+| Theme colours from `colors.toml` | caption rendered in Phosphor's accent `#44E8CB` |
+| Countdown → auto (silence) | flipped to the AUTO SHOW placeholder by itself |
+| Countdown → menu (any key) | Space during the countdown → PICK AN ACT placeholder |
+| Single Esc does **not** quit | sub-caption "press Esc again to stop", process alive, layer up |
+| Esc×2 quits | process gone, layer gone, within 0.5 s |
+| Multi-monitor | **untested** — vic had one screen (eDP-1) |
+| Log noise | one harmless `qt.qpa.services` WARN: portal app-id already registered (second Qt app in the session) |
+| Title sizing | at `height/8` "SHOWOFF OMARCHY" nearly spans 1920 px — needs fit-to-width before smaller screens |
+
+**Testing rule, learned the hard way that night:** never inject a key
+(`wtype`) unless `hyprctl layers -j` shows `showoff-omarchy` *immediately*
+before that key. Fred pressed Esc×2 himself mid-test; my two injected
+Escapes then went to the focused terminal and cancelled an AskUserQuestion
+prompt in one of his other Claude sessions. Guard every key; "gone after my
+keys" proves nothing on its own.
 
 Repo: `github.com/nixfred/showoff.omarchy` (PUBLIC — it is for other
 people's machines; nothing private ever goes in here).

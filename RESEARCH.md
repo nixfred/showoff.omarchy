@@ -169,7 +169,10 @@ waiting → next → menu`). Esc×2 from any state → `cleanup-all → restore 
 
 ## 8. Open questions (verify on `demo@ovm` before building)
 
-- Does `app/shell.qml` even load? It has never been run; `qmllint` isn't on vic.
+- ~~Does `app/shell.qml` even load?~~ Yes — verified on vic 2026-09-21
+  (see `CLAUDE.md` "Verified on vic"): loads, covers the screen at Overlay
+  level, takes the keyboard, countdown gates both ways, single Esc warns,
+  Esc×2 quits. Multi-monitor still untested (one screen that night).
 - How long does `omarchy-theme-set` take end-to-end on a typical box, and is
   rapid cycling (Theme Roulette) smooth, or does the lock file serialize it
   into a slideshow?
