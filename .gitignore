@@ -1,0 +1,5 @@
+.qmlc
+*.mp4
+*.gif
+docs/*.png
+!docs/.keep

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "nixfred.showoff",
+  "name": "Showoff Omarchy",
+  "version": "0.0.1",
+  "author": "Fred Nix",
+  "license": "MIT",
+  "description": "An auto-running show that takes over the screen and demonstrates Omarchy to someone who has only ever used Windows or macOS. Big glowing captions, live theme picking, real apps. Press Esc twice to stop it at any point.",
+  "kinds": [
+    "overlay"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "overlay": "Showoff.qml"
+  }
+}
