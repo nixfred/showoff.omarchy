@@ -5,12 +5,14 @@
 > This file is the project brief. Born 2026-09-21 from Fred: *"create a plugin
 > that people use on their real system that is an auto showoff Omarchy that
 > will run on any omarchy system … The goal isn't to show an omarchy person
-> omarchy, it's to show a windows or mac person."*
+> omarchy, it's to show a windows or mac person."* Re-scoped the same night
+> from plugin to **application** (below).
 
-**Status: scaffold + research. No act is built.** `manifest.json` validates,
-`Showoff.qml` is a takeover-only stub (fullscreen overlay, exclusive
-keyboard, Esc×2 to leave) that has **never been summoned** — runtime
-unverified. Fred is narrowing `IDEAS.md` before any act gets written.
+**Status: scaffold + research. No act is built.** `app/shell.qml` is a
+takeover-and-mode-gate stub (fullscreen overlay on every screen, exclusive
+keyboard, countdown → auto or menu, Esc×2 to leave) that has **never been
+run** — runtime unverified. `bin/showoff` launches it. All 22 acts are in
+(`ACTS.md`); the engine and every act remain to be written.
 
 Repo: `github.com/nixfred/showoff.omarchy` (PUBLIC — it is for other
 people's machines; nothing private ever goes in here).
@@ -19,87 +21,125 @@ people's machines; nothing private ever goes in here).
 
 ## Law 0 — runs on anyone's Omarchy, depends on no other plugin
 
-Fred, 2026-09-21, mid-session: *"It must work on anyone's omarchy and not
-depend on other plugins."* This outranks every other choice in the project.
+Fred, 2026-09-21: *"It must work on anyone's omarchy and not depend on other
+plugins."* This outranks every other choice in the project.
 
-- **Only stock surface.** `omarchy-*` commands in `$OMARCHY_PATH/bin`, the
-  shell's own `qs.Commons` (`Style`, `Color`, `Util`), Quickshell modules,
-  Qt. Nothing from `~/.config/omarchy/plugins/*`, nothing from Fred's forks or
-  vic patches, no `nixfred.*` IPC targets.
+- **Only stock surface.** `omarchy-*` commands in `$OMARCHY_PATH/bin`,
+  Quickshell (0.3.x, present on every Omarchy 4.x because the shell *is*
+  Quickshell), Qt, and stock state under `~/.local/state/omarchy/current/`
+  (`theme.name`, `theme/colors.toml`, `background`). Nothing from
+  `~/.config/omarchy/plugins/*`, nothing from Fred's forks or vic patches, no
+  `nixfred.*` IPC targets, and **not** the shell's `qs.Commons` (that is
+  only importable from inside the shell process).
 - **Optional packages are preconditions, not dependencies.** btop, cava,
   cmatrix, fastfetch, qrencode, ttfx are pacman packages the show can offer to
-  install *on screen* (the One-Line Install act) or that `showoff prepare`
-  installs once. An act whose package is missing is skipped, never fatal.
+  install *on screen* (One-Line Install) or that `showoff prepare` installs
+  once. An act whose package is missing is skipped, never fatal.
 - **vic is NOT a stock box.** 80+ plugins, a patched shell, Infomarchy owning
   the `background` IPC target, a dev checkout at `$OMARCHY_PATH`
-  (`4.0.0.alpha`, dev). Something working on vic proves nothing. Verify on a
-  **clean Omarchy profile**: `ovm` runs packaged 4.0.4 but its plugin dir was
-  seeded from vic (73 entries), so make a fresh user there, or a fresh
-  omarchy-lab VM (`~/VMs/omarchy-lab`, hive VM 105), before calling anything
-  portable.
-- **Minimum Omarchy version = whatever shipped the shell plugin system
-  (4.0).** Say so in the README; don't chase older releases.
+  (`4.0.0.alpha`). Something working on vic proves nothing. Verify on a
+  **clean profile**: Fred chose a **fresh user on `ovm`** (packaged 4.0.4-1,
+  Quickshell 0.3.1; its `pi` user's plugin dir was seeded from vic, so make a
+  new user — `demo` — and test there).
+- **Minimum Omarchy version = 4.0** (the release that made the shell a
+  Quickshell process). Say so in the README; don't chase older releases.
 - When a stock command doesn't exist on a release, the act says so on screen
   and moves on. Never paper over it with a copied script.
 
-## The goal
+## It is an application, not a plugin (Fred, 2026-09-21)
 
-A show, started with one command, that a Windows or Mac person watches (and
-partly drives) and comes away thinking *"wait, what?"*. Roughly 90 s to 2 min.
+Fred: *"I don't think this should be a plugin. I think it should be an
+application because it needs to take over a full screen and it needs to allow
+the user to pick auto … or … select on a menu … maybe even as the thing
+starts, it does a countdown, and if you don't pick something or move
+something, it just goes ahead and runs the auto show."*
 
-Fred's spine (fixed):
+What that means concretely:
 
-1. Take over the screen. Esc twice, any time, stops it and puts everything back.
-2. Open their default browser on omarchy.org.
-3. Big, glowing captions over the screen talk to the watchers.
-4. "Now I'm going to let **you** change the theme." Left/Right through the
-   themes, Enter picks. Live: every app recolours as they arrow.
-5. Take back over. Install btop if it's missing (on screen, in the presentation
-   terminal), open it, **leave it running**.
-6. Go on and do other things — the acts Fred picks from `IDEAS.md`.
+- **Its own process.** `showoff` runs `quickshell -n -p <app dir>` — exactly
+  how Omarchy runs its own shell (`bin/omarchy-launch-shell:19`), but a
+  separate instance. A crash in the show can never take down the user's bar,
+  and installing it never means "load arbitrary code into your shell".
+- **Still layer-shell.** The captions must float *over* the live browser and
+  btop, so the window is a `PanelWindow` on `WlrLayer.Overlay` with exclusive
+  keyboard focus — the same primitive as the stock emoji/clipboard/menu/lock
+  overlays (`RESEARCH.md` §1). A normal fullscreen window would hide the very
+  apps being shown off; that is why it isn't a "plain" app.
+- **Launched like an app.** `showoff-omarchy.desktop` puts *Showoff Omarchy*
+  in the launcher (SUPER+SPACE → "show"), which is itself a demo moment.
+- **Packaged like an app.** Install path is still open: a curl-able
+  `install.sh` (files to `~/.local/share/showoff-omarchy`, launcher to
+  `~/.local/bin`, desktop entry to `~/.local/share/applications`) and/or an
+  AUR `PKGBUILD` so `omarchy-pkg-add showoff-omarchy` works. Decide before v1.
 
-Bonus points for interaction (the theme pick is the first; more in IDEAS).
+### The modes
+
+```
+showoff                 → splash + countdown "auto show in 5 · any key for the menu"
+                            silence → AUTO: the whole running order (ACTS.md)
+                            any key / click → MENU: pick an act, it runs, back to the menu
+showoff auto            → straight into the full show
+showoff menu            → straight to the menu
+showoff act <id>        → one act, then the menu
+showoff prepare         → install the optional packages once (booth)
+Esc Esc                 → from anywhere: restore everything, quit
+```
+
+When the auto show finishes it returns to the menu, so the presenter can
+replay any act on request.
+
+## Naming (Fred, 2026-09-21: "it's not about me")
+
+The product is **Showoff Omarchy**. Command `showoff`, desktop id
+`showoff-omarchy`, layer namespace `showoff-omarchy`. **No `nixfred` in any
+id.** The GitHub repo stays under Fred's account (`nixfred/showoff.omarchy`)
+because that is where it lives, not because it's about him.
 
 ## Decisions made so far (don't re-litigate)
 
-- **It is an `overlay`-kind shell plugin**, id `nixfred.showoff`, started with
-  `omarchy-shell shell summon nixfred.showoff '{}'`. Same primitive the stock
-  emoji/clipboard/menu/lock overlays use. Research: `RESEARCH.md` §1.
+- **All 22 acts are in** (Fred: "do them all"). Running order proposed in
+  `ACTS.md`; the auto show may use shortened versions, the menu keeps full ones.
 - **The overlay is the theme picker.** It handles Left/Right/Enter itself and
   calls `omarchy-theme-set`; it never hands the keyboard to another surface
-  for this act, so Esc×2 stays reliable. (Alternative rejected: summoning
-  `omarchy-theme-switcher`, which would fight us for exclusive keyboard focus.)
-- **btop installs on screen, not at plugin-add time.** `omarchy plugin add`
-  never runs hooks or sudo (manual line 44). The presentation terminal *is*
-  the showpiece.
+  for this act, so Esc×2 stays reliable.
+- **btop installs on screen.** `omarchy plugin add`/pacman aren't in play at
+  install time; the presentation terminal *is* the showpiece.
 - **The show is data.** An ordered act table (caption, precondition, command,
   wait-until, hold, cleanup); the engine is a small state machine. New acts
   are rows, not code paths.
-- **Snapshot then restore.** Theme, background, idle, DND recorded before act 1
-  and restored at the end or on Esc×2, unless the visitor chooses "keep".
-- **Name:** Fred named it *Showoff Omarchy*. The plugin id `nixfred.showoff`
-  is Larry's placeholder — Fred names things; ask before it ships.
+- **Snapshot then restore.** Theme, background, idle, DND recorded before act
+  1 and restored at the end or on Esc×2, unless the visitor chooses "keep".
+- **Theme colours come from `colors.toml`**, watched for changes, so captions
+  recolour with the theme the visitor picks.
+- **Voice off by default** if it ever exists (Fred: "parlor trick, gets old").
 
 ## Guardrails
 
 - Never sudo silently. Never a destructive command. The engine only runs
   commands from the shipped act table.
 - Never leave the machine changed: everything the show touches is restored.
-- Never summon it on vic without Fred's go — it grabs his keyboard.
-- Voice is off by default if it ever exists (Fred: "parlor trick, gets old").
+- Never run it on vic without Fred's go — it grabs his keyboard. First runs
+  happen on the fresh `demo` user on `ovm`.
+- Use Quickshell's `ShortcutsInhibitor` during the show so SUPER-chords don't
+  leak to Hyprland, and `IdleInhibitor` instead of flipping the user's
+  stay-awake toggle (both in `Quickshell.Wayland`, verified present).
 
 ## Files
 
-- `manifest.json` — schemaVersion 1, kinds `["overlay"]`, `keepLoaded: true`.
-- `Showoff.qml` — the overlay stub (takeover + Esc×2 only).
+- `bin/showoff` — launcher (modes above); `shellcheck` clean.
+- `app/shell.qml` — the application root (`ShellRoot`): takeover, colours,
+  countdown gate, Esc×2. Placeholders where the engine goes.
+- `showoff-omarchy.desktop` — launcher entry.
 - `RESEARCH.md` — everything verified about the platform, with anchors.
-- `IDEAS.md` — 20 candidate acts (+2 bonus) with Larry's suggested cut.
+- `ACTS.md` — the spine, all 22 acts, running order, menu groups.
 - `docs/` — screenshots/recordings later (ignored by git except `.keep`).
 
 ## Next
 
-1. Fred narrows `IDEAS.md`.
-2. Summon the stub on a clean profile; confirm takeover, multi-monitor, Esc×2.
-3. Build the engine + Fred's spine (browser → theme picker → btop).
-4. Add the chosen acts one at a time, each verified on a clean profile.
-5. Screenshots (pixel-checked), README, list on omarchyplugins.com.
+1. `ssh ovm`, create user `demo`, copy the repo, run `showoff` — confirm
+   takeover on every screen, countdown → auto/menu, Esc×2 quits clean.
+2. Engine: act table + state machine + snapshot/restore + Keycap Karaoke layer.
+3. The spine: omarchy.org → theme picker → One-Line Install + btop.
+4. Acts in running order, each verified on `demo@ovm`.
+5. Menu. Booth mode. Camera Roll.
+6. Install path (install.sh and/or AUR). Screenshots (pixel-checked). README.

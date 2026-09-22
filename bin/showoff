@@ -1,0 +1,48 @@
+#!/bin/bash
+# showoff — Showoff Omarchy launcher.
+# usage: showoff                 countdown, then the auto show unless a key is pressed
+#        showoff auto            straight into the full show
+#        showoff menu            straight to the act menu
+#        showoff act <id>        run one act, then back to the menu
+#        showoff prepare         install the optional packages the acts use (not built yet)
+# Esc twice, at any time, stops it and puts everything back.
+set -euo pipefail
+
+app_dir="${SHOWOFF_APP_DIR:-$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)/app}"
+
+usage() {
+  sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+mode="${1:-countdown}"
+case "$mode" in
+countdown | auto | menu) ;;
+act)
+  export SHOWOFF_ACT="${2:?usage: showoff act <id>}"
+  ;;
+prepare)
+  echo "showoff prepare: not built yet. Optional packages are offered on screen during the show." >&2
+  exit 2
+  ;;
+-h | --help | help)
+  usage
+  exit 0
+  ;;
+*)
+  usage >&2
+  exit 1
+  ;;
+esac
+
+if ! command -v quickshell >/dev/null; then
+  echo "showoff: quickshell not found. Showoff Omarchy needs Omarchy 4.0 or newer." >&2
+  exit 3
+fi
+if [[ ! -f "$app_dir/shell.qml" ]]; then
+  echo "showoff: app not found at $app_dir (set SHOWOFF_APP_DIR)" >&2
+  exit 3
+fi
+
+export SHOWOFF_MODE="$mode"
+# -n: never start a second show on top of a running one.
+exec quickshell -n -p "$app_dir"

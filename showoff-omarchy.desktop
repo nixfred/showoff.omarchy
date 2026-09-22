@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=Showoff Omarchy
+Comment=Show Omarchy off to a Windows or Mac person. Esc twice to stop.
+Exec=showoff
+Terminal=false
+Type=Application
+Icon=omarchy
+Categories=Utility;
+StartupNotify=false
