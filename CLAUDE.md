@@ -154,12 +154,10 @@ because that is where it lives, not because it's about him.
 - `ACTS.md` — the spine, all 22 acts, running order, menu groups.
 - `docs/` — screenshots/recordings later (ignored by git except `.keep`).
 
-## Next
+## Next — follow `PLAN.md`
 
-1. `ssh ovm`, create user `demo`, copy the repo, run `showoff` — confirm
-   takeover on every screen, countdown → auto/menu, Esc×2 quits clean.
-2. Engine: act table + state machine + snapshot/restore + Keycap Karaoke layer.
-3. The spine: omarchy.org → theme picker → One-Line Install + btop.
-4. Acts in running order, each verified on `demo@ovm`.
-5. Menu. Booth mode. Camera Roll.
-6. Install path (install.sh and/or AUR). Screenshots (pixel-checked). README.
+`PLAN.md` is the build plan, written so Opus or lower can execute it: exact
+contracts (act schema, engine states, Runner/Hypr/Snapshot APIs, verified
+Quickshell and Hyprland idioms), ten phases each with steps, "done when"
+evidence and a model tier, the full act table as data, a pitfalls list and
+verification recipes. Start at P1 (Opus). Commit per phase.
