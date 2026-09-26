@@ -3,3 +3,6 @@
 *.gif
 docs/*.png
 !docs/.keep
+pkg/
+src/
+*.pkg.tar.zst
