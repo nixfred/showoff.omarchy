@@ -10,3 +10,8 @@ Icon=omarchy
 Categories=Utility;
 Keywords=demo;show;showoff;omarchy;
 StartupNotify=false
+Actions=record-x;
+
+[Desktop Action record-x]
+Name=Record the X cut (80 s, saves to ~/Videos)
+Exec=showoff x

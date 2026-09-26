@@ -105,7 +105,7 @@ var ACTS = [
         e.say(words[n], n === 0 ? "every window finds its own place" : "the layout rebuilds itself")
         e.showKeycap(n === 0 ? key : "", 0, function() {
           e.launch("omarchy-launch-terminal")
-          e.onWindow(function(addr) { addrs.push(addr); e.setPose("lower"); e.after(n === 0 ? 2200 : 1500, function() { open(n + 1) }) },
+          e.onWindow(function(addr) { addrs.push(addr); e.setPose("lower"); e.after(n === 0 ? 2200 : (e.x ? 1000 : 1500), function() { open(n + 1) }) },
                      8000, function() { open(n + 1) })
         })
       }
@@ -118,10 +118,10 @@ var ACTS = [
           e.hypr('hl.dsp.window.float({ window = "address:' + w + '", action = "toggle" })', "togglefloating address:" + w)
           e.hypr('hl.dsp.window.resize({ window = "address:' + w + '", x = 900, y = 560 })', "resizewindowpixel exact 900 560,address:" + w)
           e.hypr('hl.dsp.window.center({ window = "address:' + w + '" })', "centerwindow")
-          e.after(3400, function() {
+          e.after(e.x ? 2600 : 3400, function() {
             e.say("AND SNAP IT BACK", "")
             e.hypr('hl.dsp.window.float({ window = "address:' + w + '", action = "toggle" })', "togglefloating address:" + w)
-            e.after(2400, e.done)
+            e.after(e.x ? 1600 : 2400, e.done)
           })
         })
       }
@@ -143,17 +143,19 @@ var ACTS = [
         e.focusWs(spare[n])
         e.say(spare[n], "a fresh desktop, already there")
         e.launch("omarchy-launch-terminal")
-        e.onWindow(function() { e.after(1400, function() { fill(n + 1) }) }, 8000, function() { fill(n + 1) })
+        e.onWindow(function() { e.after(e.x ? 600 : 1400, function() { fill(n + 1) }) }, 8000, function() { fill(n + 1) })
       }
       function fly(n) {
         if (n === all.length * 2) { e.focusWs(e.stageWs); e.after(600, e.done); return }
         var ws = all[n % all.length]
         e.setPose("center")
-        e.say(ws, n < all.length ? "SUPER + a number. that's it." : "")
-        e.keycap = n < all.length ? "SUPER + " + (ws === "10" ? "0" : ws) : ""
+        var first = e.x ? n === 0 : n < all.length
+        e.say(ws, first ? "SUPER + a number. that's it." : "")
+        e.keycap = first ? "SUPER + " + (ws === "10" ? "0" : ws) : ""
         e.focusWs(ws)
         // First lap: slow, with the keys on screen. Second lap: the whoosh.
-        e.after(n < all.length ? 2600 : 650, function() { e.keycap = ""; fly(n + 1) })
+        var slow = e.x ? n === 0 : n < all.length
+        e.after(slow ? 2600 : 650, function() { e.keycap = ""; fly(n + 1) })
       }
       fill(0)
     },
@@ -184,6 +186,7 @@ var ACTS = [
               setter.set(list[i].slug)
               e.after(2800, e.done)
             }, 25000)
+          if (e.x) e.after(1200, function() { e.autoKeys(["Right", "Right", "Right", "Return"], 1300) })
         }, 3000)
       })
     },
@@ -191,13 +194,13 @@ var ACTS = [
   },
   {
     id: "roulette", title: "Theme roulette", group: "drive",
-    caption: "EVERY APP. EVERY COLOUR.", sub: "", pose: "lower",
+    caption: "EVERY APP. EVERY COLOR.", sub: "", pose: "lower",
     requires: ["omarchy-theme-set"],
     run: function(e) {
       loadThemes(e, function() {
         var others = e.themeList.filter(function(t) { return t.slug !== e.chosenTheme })
         var picks = []
-        for (var k = 0; k < 6 && others.length; k++) picks.push(others.splice(Math.floor(Math.random() * others.length), 1)[0])
+        for (var k = 0; k < (e.x ? 4 : 6) && others.length; k++) picks.push(others.splice(Math.floor(Math.random() * others.length), 1)[0])
         if (e.chosenTheme) picks.push({ slug: e.chosenTheme, title: e.titleOf(e.chosenTheme) })
         function go(n) {
           if (n === picks.length) { e.sayThen("AND BACK TO YOURS.", picks.length ? picks[picks.length - 1].title : "", e.done); return }
@@ -216,7 +219,7 @@ var ACTS = [
     requires: ["omarchy-theme-bg-next"],
     run: function(e) {
       function go(n) {
-        if (n === 4) { e.done(); return }
+        if (n === (e.x ? 3 : 4)) { e.done(); return }
         e.launch("omarchy-theme-bg-next")
         e.after(1600, function() { go(n + 1) })
       }
@@ -261,7 +264,7 @@ var ACTS = [
         if (code === 0) {
           e.say("ONE LINE. ONE APP.", "btop: every core, every process, live")
           e.launch("omarchy-launch-floating-terminal-with-presentation btop")
-          e.onWindow(function() { e.setPose("lower"); e.after(5500, e.done) }, 10000, e.done)
+          e.onWindow(function() { e.setPose("lower"); e.after(e.x ? 4500 : 5500, e.done) }, 10000, e.done)
           return
         }
         // Installing needs the visitor's password: hand them the keyboard.
@@ -290,7 +293,7 @@ var ACTS = [
       e.sh("for p in cava cmatrix asciiquarium; do command -v $p >/dev/null && echo $p; done", function(c, out) {
         var apps = String(out).trim().split("\n").filter(Boolean)
         function go(n) {
-          if (n === apps.length) { e.after(6500, e.done); return }
+          if (n === apps.length) { e.after(e.x ? 4000 : 6500, e.done); return }
           e.sub = apps.slice(0, n + 1).join(" · ")
           e.launch("omarchy-launch-terminal " + apps[n])
           e.onWindow(function() { e.after(500, function() { go(n + 1) }) }, 8000, function() { go(n + 1) })
@@ -328,12 +331,12 @@ var ACTS = [
       e.setHandoff(true)
       e.showKeycap(e.bind("Emojis", "SUPER + CTRL + E"), 0, function() {
         e.launch("omarchy-menu-emoji")
-        e.after(3500, function() {
+        e.after(e.x ? 2600 : 3500, function() {
           e.launch("omarchy-shell shell hide omarchy.emojis")
           e.say("CLIPBOARD HISTORY. BUILT IN.", "every copy, searchable")
           e.showKeycap(e.bind("Clipboard manager", "SUPER + CTRL + V"), 0, function() {
             e.launch("omarchy-menu-clipboard")
-            e.after(3500, function() {
+            e.after(e.x ? 2600 : 3500, function() {
               e.launch("omarchy-shell shell hide omarchy.clipboard")
               e.setHandoff(false)
               e.after(600, e.done)
@@ -496,8 +499,9 @@ var ACTS = [
     id: "qr", title: "Take it home", group: "sendoff",
     caption: "", sub: "",
     run: function(e) {
-      e.endTheme = e.titleOf(e.chosenTheme || "")
+      e.endTheme = e.x ? "" : e.titleOf(e.chosenTheme || "")
       e.endCard = true
+      if (e.x) { e.after(6000, function() { e.endCard = false; e.done() }); return }
       var g = 0
       function finish(keep) {
         g++
@@ -535,6 +539,13 @@ var AUTO_ORDER = [
   "emoji-clipboard", "menu-tour", "nightshift", "gaps",
   "you-launch", "neovim", "local-ai",
   "screensaver", "qr"
+]
+
+// `showoff x`: the ~80 s cut for posting. No waiting on a visitor, same
+// readable keycaps. See the running-order table in ACTS.md.
+var X_ORDER = [
+  "takeover", "tiling", "workspaces", "theme-pick", "roulette",
+  "wallpapers", "install-btop", "aquarium", "webapp", "emoji-clipboard", "qr"
 ]
 
 var MENU_GROUPS = {

@@ -2,6 +2,7 @@
 # showoff — Showoff Omarchy launcher.
 # usage: showoff                 countdown, then the auto show unless a key is pressed
 #        showoff auto            straight into the full show
+#        showoff x               the ~80 s cut for posting; records itself to ~/Videos
 #        showoff menu            straight to the act menu
 #        showoff act <id>[,<id>…] run those acts, in order
 #        showoff prepare         install the optional packages the acts use (not built yet)
@@ -11,12 +12,12 @@ set -euo pipefail
 app_dir="${SHOWOFF_APP_DIR:-$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)/app}"
 
 usage() {
-  sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'
 }
 
 mode="${1:-countdown}"
 case "$mode" in
-countdown | auto | menu) ;;
+countdown | auto | menu | x) ;;
 act)
   export SHOWOFF_ACT="${2:?usage: showoff act <id>}"
   ;;

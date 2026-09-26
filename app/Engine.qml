@@ -40,6 +40,9 @@ Scope {
   property var binds: ({})              // description → "SUPER + RETURN"
   property var flags: []
   property var data: ({})               // per-act scratch, reset each act
+  property bool x: false                // `showoff x`: the ~80 s cut for posting
+  property bool recording: false
+  property string recordingFile: ""
 
   // ---- internal ----------------------------------------------------------
   property string startMode: "countdown"
@@ -123,6 +126,17 @@ Scope {
   }
   function bind(description, fallback) { return binds[description] || fallback || "" }
   function onKey(fn) { keyHandler = fn }
+  // X mode drives the pickers itself: each press shows as a keycap first, so
+  // the viewer sees exactly what a person would press.
+  function autoKeys(keys, gapMs) {
+    function go(n) {
+      if (n === keys.length || !keyHandler) return
+      var k = keys[n], label = k === "Right" ? "→" : k === "Left" ? "←" : k === "Return" ? "ENTER" : k
+      keycap = label
+      after(gapMs * 0.45, function() { if (keyHandler) keyHandler(k); after(gapMs * 0.55, function() { keycap = ""; go(n + 1) }) })
+    }
+    go(0)
+  }
   function carousel(items, idx) { carouselItems = items; carouselIndex = idx }
   function q(s) { return "'" + String(s).replace(/'/g, "'\\''") + "'" }
   function titleOf(slug) {
@@ -182,7 +196,8 @@ Scope {
   }
 
   function begin() {
-    if (startMode === "auto") runAuto()
+    if (startMode === "x") runX()
+    else if (startMode === "auto") runAuto()
     else if (startMode === "menu") toMenu()
     else if (startMode === "act") runOne(startAct)
     else { state = "countdown"; caption = "SHOWOFF OMARCHY"; sub = ""; countdown = 5; countdownTimer.start() }
@@ -194,8 +209,8 @@ Scope {
     countdownTimer.stop()
     state = "menu"
     pose = "center"
-    caption = "PICK AN ACT"
-    sub = "(the menu arrives in P3)  ·  Esc Esc to leave"
+    caption = "SHOWOFF OMARCHY"
+    sub = "Enter runs the whole show   ·   Esc Esc to leave"
     keycap = ""
   }
 
@@ -207,6 +222,37 @@ Scope {
   }
 
   // `showoff act a,b,c` runs those acts in order (handy for rehearsing a bit).
+  // The X cut: start Omarchy's own recorder, wait until it is really
+  // recording, then play X_ORDER. end() stops the recorder BEFORE restoring,
+  // so the restore never lands in the video.
+  function runX() {
+    countdownTimer.stop()
+    x = true
+    state = "running"
+    caption = ""
+    sub = ""
+    launch("omarchy-capture-screenrecording --fullscreen")
+    var tries = 0
+    function wait() {
+      sh("pgrep -f '^gpu-screen-recorder' >/dev/null", function(code) {
+        if (code === 0) { recording = true; log("recording"); after(700, function() { queue = Acts.X_ORDER.slice(); index = -1; next() }) }
+        else if (++tries > 20) { log("recorder never started — running the cut unrecorded"); queue = Acts.X_ORDER.slice(); index = -1; next() }
+        else after(250, wait)
+      }, 2000)
+    }
+    wait()
+  }
+
+  function stopRecording(then) {
+    if (!recording) { then(); return }
+    recording = false
+    sh("omarchy-capture-screenrecording --stop-recording 2>/dev/null | tail -1", function(code, out) {
+      recordingFile = String(out).trim()
+      log("recording saved: " + recordingFile)
+      then()
+    }, 15000)
+  }
+
   function runOne(ids) {
     countdownTimer.stop()
     var list = String(ids).split(",").filter(Boolean)
@@ -227,7 +273,17 @@ Scope {
     caption = ""
     sub = "omarchy.org"
     log("show ended")
-    after(8000, quit)
+    if (!x) { after(8000, quit); return }
+    // X cut: hold the logo for the last frames, then stop the recorder, then
+    // say where the file is (after the recording, so it is not in the video).
+    after(3000, function() {
+      stopRecording(function() {
+        logo = false
+        caption = "SAVED"
+        sub = recordingFile ? recordingFile.replace(/^.*\//, "~/Videos/") : "the recorder did not save a file"
+        after(4000, quit)
+      })
+    })
   }
 
   // ======================================================================
@@ -370,6 +426,8 @@ Scope {
 
   function keyPressed(name) {
     if (state === "countdown") { interact(); return }
+    // Until the act menu exists, Enter from the menu screen starts the show.
+    if (state === "menu" && (name === "Return" || name === "Enter")) { runAuto(); return }
     if (keyHandler) keyHandler(name)
   }
 
@@ -406,7 +464,8 @@ Scope {
     watching = false
     runner.killAll()
     closeOurs(act)
-    runner.run("restore", (abortCmd ? abortCmd + "; " : "") + snapshot.restoreCmd(keepTheme), 8000)
+    if (recording) { abortCmd = (abortCmd ? abortCmd + "; " : "") + "omarchy-capture-screenrecording --stop-recording >/dev/null 2>&1"; recording = false }
+    runner.run("restore", (abortCmd ? abortCmd + "; " : "") + snapshot.restoreCmd(keepTheme), 12000)
     quitWatchdog.start()
   }
 
@@ -437,5 +496,5 @@ Scope {
   }
   // Restore gets its chance (a theme switch is ~1.5 s); after that we leave
   // regardless. The show must never hold the screen hostage.
-  Timer { id: quitWatchdog; interval: 9000; onTriggered: Qt.quit() }
+  Timer { id: quitWatchdog; interval: 13000; onTriggered: Qt.quit() }
 }

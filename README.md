@@ -1,7 +1,6 @@
 # Showoff Omarchy
 
-> **Pre-alpha.** Nothing to watch yet. This repo is the plan, the research,
-> and a takeover stub. Star it and come back.
+> **Early.** The whole show runs. The act menu and a stock-box test pass are next.
 
 An application that takes over your screen and shows Omarchy off to someone
 who has only ever used Windows or macOS. Big glowing captions over your real
@@ -43,10 +42,21 @@ magic. The full list is in [ACTS.md](ACTS.md).
 - Nothing is changed for good: theme, wallpaper, idle and do-not-disturb are
   restored when the show ends, unless you choose to keep the theme you picked.
 
-## Install (when there is something to run)
+## Install
 
-Not yet. The install path (a curl-able script, an AUR package, or both) is
-being decided; see [CLAUDE.md](CLAUDE.md).
+```bash
+git clone https://github.com/nixfred/showoff.omarchy
+cd showoff.omarchy && makepkg -si
+```
+
+pacman owns every file. It lands in your launcher as **Showoff Omarchy**.
+Remove it with `sudo pacman -R showoff-omarchy`.
+
+```
+showoff        countdown, then the whole show (any key: menu)
+showoff x      the 80 second cut; records itself to ~/Videos for posting
+showoff auto   straight into the whole show
+```
 
 ## Repo map
 
