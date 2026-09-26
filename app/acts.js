@@ -119,12 +119,29 @@ var ACTS = [
         e.setPose("lower")
         e.say("POP ONE OUT", "float it, pin it, keep working under it")
         e.showKeycap(e.bind("Pop window out (float & pin)", "SUPER + O"), 0, function() {
-          e.hypr('hl.dsp.window.float({ window = "address:' + w + '", action = "toggle" })', "togglefloating address:" + w)
-          e.hypr('hl.dsp.window.resize({ window = "address:' + w + '", x = 900, y = 560 })', "resizewindowpixel exact 900 560,address:" + w)
-          e.hypr('hl.dsp.window.center({ window = "address:' + w + '" })', "centerwindow")
+          // SUPER + O runs omarchy-hyprland-window-pop, which acts on the
+          // ACTIVE window. While the show holds the keyboard ours may not be
+          // active (and popping one of the user's windows would be wrong), so
+          // replay the script's exact steps aimed at our window's address, in
+          // order, in ONE shell. Separate detached commands raced and left it
+          // off-centre. Verified 2026-09-26: lands at (310,108) = centred.
+          var W = "address:" + w
+          function d(lua, classic) { return e.hyprCmd(lua, classic) }
+          var popOut = [
+            d('hl.dsp.window.float({ window = "' + W + '", action = "toggle" })', "togglefloating " + W),
+            d('hl.dsp.window.resize({ window = "' + W + '", x = 1300, y = 900 })', "resizewindowpixel " + e.q("exact 1300 900," + W)),
+            d('hl.dsp.window.center({ window = "' + W + '" })', "centerwindow " + W),
+            d('hl.dsp.window.pin({ window = "' + W + '" })', "pin " + W),
+            d('hl.dsp.window.alter_zorder({ window = "' + W + '", mode = "top" })', "alterzorder top," + W)
+          ].join("; ")
+          var snapBack = [
+            d('hl.dsp.window.pin({ window = "' + W + '" })', "pin " + W),
+            d('hl.dsp.window.float({ window = "' + W + '", action = "toggle" })', "togglefloating " + W)
+          ].join("; ")
+          e.launch(popOut)
           e.after(e.x ? 2600 : 3400, function() {
             e.say("AND SNAP IT BACK", "")
-            e.hypr('hl.dsp.window.float({ window = "address:' + w + '", action = "toggle" })', "togglefloating address:" + w)
+            e.launch(snapBack)
             e.after(e.x ? 1600 : 2400, e.done)
           })
         })

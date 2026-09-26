@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/showoff-omarchy.png" alt="Showoff Omarchy: the glowing OMARCHY takeover, SUPER + RETURN keycaps, and terminals tiling themselves" width="100%">
+  <img src="docs/hero.png" alt="Showoff Omarchy: show your Windows and Mac friends what a computer can feel like. Runs on your system, with your stuff." width="100%">
 </p>
 
 # Showoff Omarchy
