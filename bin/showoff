@@ -44,5 +44,10 @@ if [[ ! -f "$app_dir/shell.qml" ]]; then
 fi
 
 export SHOWOFF_MODE="$mode"
+# Our helpers (showoff-hypr) must be on PATH for the engine's commands.
+bin_dir="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+export PATH="$bin_dir:$PATH"
+# A shell started outside the session (ssh, a resumed agent) may lack this.
+export HYPRLAND_INSTANCE_SIGNATURE=${HYPRLAND_INSTANCE_SIGNATURE:-$(ls -t "/run/user/$(id -u)/hypr" 2>/dev/null | head -1)}
 # -n: never start a second show on top of a running one.
 exec quickshell -n -p "$app_dir"

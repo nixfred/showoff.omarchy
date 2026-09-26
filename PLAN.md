@@ -269,7 +269,7 @@ Missing file = defaults. Read once at start with `FileView`.
 
 Each phase: **Goal · Files · Steps · Done when · Tier**. Commit after each.
 
-### P1 — Engine core  · Tier: **Opus**
+### P1 — Engine core  · Tier: **Opus**  · ✅ DONE 2026-09-26 (verified on vic)
 
 Goal: the show runs *as a state machine over data*, with two trivial acts,
 snapshot/restore, Keycap layer, glow captions, inhibitors, Esc×2 everywhere.
@@ -522,10 +522,18 @@ screensaver, qr.
 14. Fractional scaling: layer-surface coordinates assume scale 1 (omagotchi's note). Test on the iPad output on ovm (`BEAM-IPAD 2048x1536 scale=2`).
 15. Fit captions to width; the stub's `height/8` nearly overflowed 1920 px.
 
+16. **QML method names:** never `onSomething` for a plain method (reserved for signal handlers → "Illegal method name"), and never a JS global like `escape` (same error). Engine uses `handleFinished`, `handleWindowOpened`, `escapePressed`. (P1)
+17. A `Repeater` model must never go negative (`Math.max(0, …)`) — "Model size of -1" warning. (P1)
+18. Reserve the keycap row's height even when empty, or the caption jumps ~70 px when it hides. (P1)
+19. Captions/skip lines over a busy page (X feed, browser) lose contrast — give sub-captions a backing plate in P8.
+20. `ShortcutInhibitor` **does** go active on a layer surface on vic (logged `active=true`) — SUPER chords are held during the show. Re-check on packaged 4.0.x.
+
 ## Appendix C — verification recipes
 
 ### C.1 Start / stop for tests
 ```bash
+# A shell started outside the session (ssh, herdr pane, resumed Claude) may lack this; derive it:
+export HYPRLAND_INSTANCE_SIGNATURE=${HYPRLAND_INSTANCE_SIGNATURE:-$(ls -t /run/user/$(id -u)/hypr | head -1)}
 S=$XDG_RUNTIME_DIR/showoff-test; mkdir -p "$S"
 setsid -f bash -c "exec bin/showoff auto > $S/log 2>&1"
 pgrep -x quickshell -a | grep showoff            # running?

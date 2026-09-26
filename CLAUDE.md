@@ -8,9 +8,17 @@
 > omarchy, it's to show a windows or mac person."* Re-scoped the same night
 > from plugin to **application** (below).
 
-**Status: scaffold verified, no act built.** `app/shell.qml` is a
-takeover-and-mode-gate stub; `bin/showoff` launches it. All 22 acts are in
-(`ACTS.md`); the engine and every act remain to be written.
+**Status: P1 (engine core) done and verified on vic 2026-09-26.** The show is a
+state machine (`app/Engine.qml`) walking the act table (`app/acts.js`), with
+Runner/Hypr/Snapshot, glowing captions, Keycap Karaoke, idle + shortcut
+inhibitors, skip-on-missing-precondition and restore on every exit. Two acts
+exist (`takeover`, `hello-terminal`); the other 20 are PLAN.md P2–P9.
+
+P1 evidence (vic, coffee theme): `showoff auto` → takeover → SUPER + RETURN
+keycaps → kitty tiles in under the scrim → closes → "THAT WAS OMARCHY"; windows
+4→5→4; Esc×2 mid-hold closes the terminal and restores (`restored (0)`);
+missing-binary drill skips with the missing names and continues;
+`ShortcutInhibitor active=true`. No QML errors.
 
 ### Verified on vic, 2026-09-21 (Fred's go; three runs, screenshots pixel-checked)
 

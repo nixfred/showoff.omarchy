@@ -2,32 +2,21 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
+import "ui"
 
 // Showoff Omarchy — a standalone Quickshell application.
 //
 // Runs as its own process (`quickshell -n -p <this dir>`), never inside the
-// user's omarchy-shell. It depends on nothing but Quickshell, Qt, and the
-// stock omarchy-* commands; theme colours come straight from Omarchy's own
-// colors.toml so the captions follow whatever theme is on screen.
-//
-// STATUS: scaffold. This proves the takeover and the mode gate only:
-//   - a fullscreen overlay on every screen, above every window
-//   - exclusive keyboard focus (nothing under us gets keys)
-//   - Esc twice within a second quits and restores
-//   - the countdown gate: any other key or click before it hits zero opens
-//     the menu; silence lets the auto show run
-// No act exists yet. See RESEARCH.md and ACTS.md.
+// user's omarchy-shell. Depends on nothing but Quickshell, Qt and the stock
+// omarchy-* commands. This file is windows + bindings only; the show itself
+// is Engine.qml walking the act table in acts.js (PLAN.md §1).
 ShellRoot {
   id: root
-
-  // countdown | auto | menu | act   (bin/showoff sets SHOWOFF_MODE)
-  property string mode: Quickshell.env("SHOWOFF_MODE") || "countdown"
-  property string actId: Quickshell.env("SHOWOFF_ACT") || ""
 
   // ---- theme colours, read from stock Omarchy state ---------------------
   property color accent: "#44E8CB"
   property color foreground: "#FFFFFF"
-  property color background: "#1B2FB0"
+  property color darkBackground: "#101C6E"
 
   function parseColors(text) {
     var lines = text.split("\n")
@@ -36,7 +25,7 @@ ShellRoot {
       if (!m) continue
       if (m[1] === "accent") root.accent = m[2]
       else if (m[1] === "foreground") root.foreground = m[2]
-      else if (m[1] === "background") root.background = m[2]
+      else if (m[1] === "darker_background") root.darkBackground = m[2]
     }
   }
 
@@ -47,58 +36,10 @@ ShellRoot {
     onFileChanged: reload()
   }
 
-  // ---- state ------------------------------------------------------------
-  property string caption: "SHOWOFF OMARCHY"
-  property string subcaption: ""
-  property int countdown: 5
+  Engine { id: engine }
 
-  // Esc twice within escWindowMs ends the show. A single reflex tap does
-  // nothing, so a visitor can't kill the demo by accident.
-  readonly property int escWindowMs: 1000
-  property double lastEscAt: 0
-
-  Component.onCompleted: {
-    if (root.mode === "countdown") countdownTimer.start()
-    else root.enter(root.mode)
-  }
-
-  Timer {
-    id: countdownTimer
-    interval: 1000
-    repeat: true
-    onTriggered: {
-      root.countdown -= 1
-      if (root.countdown <= 0) {
-        stop()
-        root.enter("auto")
-      }
-    }
-  }
-
-  function enter(newMode) {
-    countdownTimer.stop()
-    root.mode = newMode
-    // Placeholders until the engine exists.
-    if (newMode === "auto") { root.caption = "AUTO SHOW"; root.subcaption = "(no acts built yet)  Esc Esc to leave" }
-    else if (newMode === "menu") { root.caption = "PICK AN ACT"; root.subcaption = "(menu not built yet)  Esc Esc to leave" }
-    else if (newMode === "act") { root.caption = "ACT: " + root.actId.toUpperCase(); root.subcaption = "(acts not built yet)  Esc Esc to leave" }
-  }
-
-  function quit() {
-    // Restore hooks go here once the engine exists (theme, wallpaper, DND).
-    Qt.quit()
-  }
-
-  function handleEscape() {
-    var now = Date.now()
-    if (now - root.lastEscAt <= root.escWindowMs) root.quit()
-    else { root.lastEscAt = now; root.subcaption = "press Esc again to stop" }
-  }
-
-  // Anything that isn't Esc, during the countdown, means "I want the menu".
-  function handleInteraction() {
-    if (root.mode === "countdown") root.enter("menu")
-  }
+  Component.onCompleted: engine.start(Quickshell.env("SHOWOFF_MODE") || "countdown",
+                                      Quickshell.env("SHOWOFF_ACT") || "")
 
   // ---- one overlay window per screen -------------------------------------
   Variants {
@@ -112,61 +53,77 @@ ShellRoot {
       color: "transparent"
       WlrLayershell.namespace: "showoff-omarchy"
       WlrLayershell.layer: WlrLayer.Overlay
-      WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+      WlrLayershell.keyboardFocus: engine.handoff ? WlrKeyboardFocus.None : WlrKeyboardFocus.Exclusive
       exclusionMode: ExclusionMode.Ignore
+
+      // Keep the screen awake for the show without touching the user's
+      // stay-awake toggle, and stop SUPER chords leaking to Hyprland.
+      IdleInhibitor { enabled: engine.state !== "idle"; window: win }
+      ShortcutInhibitor {
+        id: shortcuts
+        enabled: engine.state !== "idle" && !engine.handoff
+        window: win
+        onActiveChanged: console.log("[showoff] shortcut inhibitor active=" + active)
+        onCancelled: console.log("[showoff] shortcut inhibitor cancelled by compositor")
+      }
 
       // Light scrim: the desktop underneath is the thing being shown off.
       Rectangle { anchors.fill: parent; color: Qt.rgba(0, 0, 0, 0.35) }
 
-      MouseArea {
-        anchors.fill: parent
-        onClicked: root.handleInteraction()
-      }
+      MouseArea { anchors.fill: parent; onClicked: engine.interact() }
 
       Column {
         anchors.centerIn: parent
-        spacing: 24
+        spacing: Math.round(win.height / 30)
 
-        Text {
+        Keycap {
           anchors.horizontalCenter: parent.horizontalCenter
-          text: root.caption
-          color: root.accent
-          font.family: "JetBrainsMono Nerd Font"
-          font.pixelSize: Math.round(win.height / 8)
-          font.bold: true
-          style: Text.Outline
-          styleColor: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.5)
+          combo: engine.keycap
+          accent: root.accent
+          foreground: root.foreground
+          fill: root.darkBackground
+          unit: Math.round(win.height / 16)
         }
 
-        Text {
-          visible: root.mode === "countdown"
+        Caption {
           anchors.horizontalCenter: parent.horizontalCenter
-          text: "auto show in " + root.countdown + "   ·   press any key for the menu"
-          color: root.foreground
-          font.family: "JetBrainsMono Nerd Font"
-          font.pixelSize: Math.round(win.height / 30)
-          opacity: 0.85
+          text: engine.caption
+          sub: engine.state === "countdown" ? "" : engine.sub
+          accent: root.accent
+          foreground: root.foreground
+          areaWidth: win.width
+          areaHeight: win.height
         }
 
-        Text {
-          visible: root.subcaption !== ""
+        Countdown {
           anchors.horizontalCenter: parent.horizontalCenter
-          text: root.subcaption
-          color: root.foreground
-          font.family: "JetBrainsMono Nerd Font"
-          font.pixelSize: Math.round(win.height / 30)
-          opacity: 0.85
+          visible: engine.state === "countdown"
+          seconds: engine.countdown
+          foreground: root.foreground
+          areaHeight: win.height
         }
       }
 
+      // Progress: act i of n, bottom-centre, quiet.
+      Text {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: Math.round(win.height / 30)
+        visible: engine.state === "running" && engine.progress.total > 1
+        text: engine.progress.index + " / " + engine.progress.total + "   ·   Esc Esc to stop"
+        color: root.foreground
+        opacity: 0.55
+        font.family: "JetBrainsMono Nerd Font"
+        font.pixelSize: Math.round(win.height / 60)
+      }
+
       Item {
-        id: keyCatcher
         anchors.fill: parent
         focus: true
         Keys.priority: Keys.BeforeItem
         Keys.onPressed: function(event) {
-          if (event.key === Qt.Key_Escape) root.handleEscape()
-          else root.handleInteraction()
+          if (event.key === Qt.Key_Escape) engine.escapePressed()
+          else engine.interact()
           event.accepted = true
         }
       }

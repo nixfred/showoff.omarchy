@@ -1,0 +1,6 @@
+#!/bin/bash
+# showoff-hypr <lua-dispatch> [classic dispatch args...]
+# Hyprland >=0.56 takes Lua dispatches; older releases take the classic form.
+# Try Lua first, fall back to classic, so the show runs on both.
+export HYPRLAND_INSTANCE_SIGNATURE=${HYPRLAND_INSTANCE_SIGNATURE:-$(ls -t "/run/user/$(id -u)/hypr" 2>/dev/null | head -1)}
+hyprctl dispatch "$1" >/dev/null 2>&1 || hyprctl dispatch "${@:2}" >/dev/null
