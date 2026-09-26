@@ -6,3 +6,4 @@ docs/*.png
 pkg/
 src/
 *.pkg.tar.zst
+!docs/showoff-omarchy.png
