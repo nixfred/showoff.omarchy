@@ -8,17 +8,22 @@
 > omarchy, it's to show a windows or mac person."* Re-scoped the same night
 > from plugin to **application** (below).
 
-**Status: P1 (engine core) done and verified on vic 2026-09-26.** The show is a
-state machine (`app/Engine.qml`) walking the act table (`app/acts.js`), with
-Runner/Hypr/Snapshot, glowing captions, Keycap Karaoke, idle + shortcut
-inhibitors, skip-on-missing-precondition and restore on every exit. Two acts
-exist (`takeover`, `hello-terminal`); the other 20 are PLAN.md P2–P9.
+**Status: the whole auto show is built (2026-09-26).** All 21 acts in
+`app/acts.js` run in `AUTO_ORDER` on a stage workspace (the first empty one),
+with live keycaps looked up from the machine's own Hyprland binds, a
+reading-time pacing model, the theme and wallpaper pickers, hand-off acts,
+the QR end card (keep the theme? Y/N) and restore on every exit path. The menu
+(P3) is still a placeholder; install.sh / PKGBUILD (P10) not written.
 
-P1 evidence (vic, coffee theme): `showoff auto` → takeover → SUPER + RETURN
-keycaps → kitty tiles in under the scrim → closes → "THAT WAS OMARCHY"; windows
-4→5→4; Esc×2 mid-hold closes the terminal and restores (`restored (0)`);
-missing-binary drill skips with the missing names and continues;
-`ShortcutInhibitor active=true`. No QML errors.
+Verified on vic 2026-09-26 (contact sheet of a 122 s run, then drills):
+takeover logo → browser → tiling → workspace flyby → theme picker driven with
+Right Right Enter → roulette recolouring everything → wallpapers → wallpaper
+picker → btop → aquarium → fastfetch → YouTube web app → emoji → clipboard;
+theme, wallpaper and window count restored. That run was ended by Esc Esc
+(Fred, watching) before menu-tour; acts 14–21 have **not** been seen on screen
+yet. Fixed on the way: launches were tied to the runner watchdog and died at
+15 s (btop) — every launch is now `setsid -f` detached; keycaps flashed for
+0.9 s — now `readMs`/`keycapMs` pacing and keycaps stay up during the action.
 
 ### Verified on vic, 2026-09-21 (Fred's go; three runs, screenshots pixel-checked)
 

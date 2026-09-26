@@ -311,7 +311,9 @@ Done when (on vic with Fred's go, or `demo@ovm`):
   the show does nothing.
 - Log has no QML errors/warnings besides the known portal WARN.
 
-### P2 — The spine  · Tier: **Opus** (ThemePicker + install act), Sonnet for `browser`
+### P2 — The spine  · ✅ built 2026-09-26 with the full auto show (P4–P8 acts too); P3 menu + P9/P10 remain
+
+####  · Tier: **Opus** (ThemePicker + install act), Sonnet for `browser`
 
 Goal: Fred's script end-to-end: omarchy.org → *you* pick the theme → btop.
 
@@ -527,6 +529,11 @@ screensaver, qr.
 18. Reserve the keycap row's height even when empty, or the caption jumps ~70 px when it hides. (P1)
 19. Captions/skip lines over a busy page (X feed, browser) lose contrast — give sub-captions a backing plate in P8.
 20. `ShortcutInhibitor` **does** go active on a layer surface on vic (logged `active=true`) — SUPER chords are held during the show. Re-check on packaged 4.0.x.
+
+21. **Detach every launch** (`setsid -f bash -lc …`). `uwsm-app` stays attached to the app it starts, so a launcher inside a Runner job is killed by the job watchdog and takes the app with it — btop died exactly 15 s after launch. (full show)
+22. **Pacing is a model, not a number per act:** `readMs(caption, sub)` = 1200 + 300/word (caption) + 230/word (sub), clamped 1.8–7 s; `keycapMs` = 2000 + 350/key, and the keycap stays on screen while its action runs. Fred: "think about how long each text phrase should be on the screen." (full show)
+23. `omarchy-theme-set` replaces the theme dir, so a watched `colors.toml` vanishes mid-switch — retry the read, and re-read on a timer. (full show)
+24. Bind lookups: on Hyprland 0.56 `hyprctl binds -j` `.arg` is a Lua index; match on `.description` instead ("Terminal", "Apps menu", "Emojis"…). modmask: 64 SUPER, 1 SHIFT, 4 CTRL, 8 ALT. (full show)
 
 ## Appendix C — verification recipes
 

@@ -3,7 +3,7 @@
 # usage: showoff                 countdown, then the auto show unless a key is pressed
 #        showoff auto            straight into the full show
 #        showoff menu            straight to the act menu
-#        showoff act <id>        run one act, then back to the menu
+#        showoff act <id>[,<id>…] run those acts, in order
 #        showoff prepare         install the optional packages the acts use (not built yet)
 # Esc twice, at any time, stops it and puts everything back.
 set -euo pipefail
