@@ -57,14 +57,6 @@ showoff        the whole show, about 4 minutes; Esc twice stops it any time
 showoff x      the 80 second cut; records itself to ~/Videos for posting
 ```
 
-## Soundtrack
-
-**Insert Coin**, an original 80s arcade theme written for this show: A minor,
-152 BPM, square wave lead, triangle bass, pulse arpeggio, noise drums. The
-score and the synth that plays it are one file, `tools/compose.ts`; render it
-with `bun tools/compose.ts out.wav`. It loops through mpv (already on every
-Omarchy). `SHOWOFF_MUSIC=off showoff` runs the show silent.
-
 ## Repo map
 
 - [CLAUDE.md](CLAUDE.md) — the project brief and the decisions made.

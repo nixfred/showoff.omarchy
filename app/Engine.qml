@@ -44,8 +44,6 @@ Scope {
   // scaled by this; reading and keycap dwells are computed separately (raw)
   // so text never drops below readable.
   readonly property real pace: 0.7
-  property bool musicOn: (Quickshell.env("SHOWOFF_MUSIC") || "on") !== "off"
-  readonly property string musicFile: String(Qt.resolvedUrl("assets/insert-coin.ogg")).replace(/^file:\/\//, "")
   property string recordingFile: ""
 
   // ---- internal ----------------------------------------------------------
@@ -206,16 +204,7 @@ Scope {
     else runAuto()
   }
 
-  // "Insert Coin" (tools/compose.ts), looped by mpv, which ships in
-  // omarchy-base. `exec` makes the job BE mpv, so killing the job stops it.
-  function startMusic() {
-    if (!musicOn) return
-    runner.run("music", "command -v mpv >/dev/null && [ -f " + q(musicFile) + " ] && exec mpv --no-video --really-quiet --no-terminal --loop-file=inf --volume=80 " + q(musicFile), 3600000)
-  }
-  function stopMusic() { runner.kill("music") }
-
   function runAuto() {
-    startMusic()
     queue = Acts.AUTO_ORDER.slice()
     index = -1
     next()
@@ -230,12 +219,12 @@ Scope {
     state = "running"
     caption = ""
     sub = ""
-    launch("omarchy-capture-screenrecording --fullscreen" + (musicOn ? " --with-desktop-audio" : ""))
+    launch("omarchy-capture-screenrecording --fullscreen")
     var tries = 0
     function wait() {
       sh("pgrep -f '^gpu-screen-recorder' >/dev/null", function(code) {
-        if (code === 0) { recording = true; log("recording"); startMusic(); after(700, function() { queue = Acts.X_ORDER.slice(); index = -1; next() }) }
-        else if (++tries > 20) { log("recorder never started — running the cut unrecorded"); startMusic(); queue = Acts.X_ORDER.slice(); index = -1; next() }
+        if (code === 0) { recording = true; log("recording"); after(700, function() { queue = Acts.X_ORDER.slice(); index = -1; next() }) }
+        else if (++tries > 20) { log("recorder never started — running the cut unrecorded"); queue = Acts.X_ORDER.slice(); index = -1; next() }
         else after(250, wait)
       }, 2000)
     }
@@ -256,7 +245,6 @@ Scope {
     var list = String(ids).split(",").filter(Boolean)
     var bad = list.filter(function(id) { return !Acts.byId(id) })
     if (!list.length || bad.length) { state = "ended"; caption = "NO SUCH ACT"; sub = bad.join(", ") + "  ·  Esc Esc to leave"; return }
-    startMusic()
     queue = list
     index = -1
     next()
@@ -277,7 +265,6 @@ Scope {
     // say where the file is (after the recording, so it is not in the video).
     after(3000, function() {
       stopRecording(function() {
-        stopMusic()
         logo = false
         caption = "SAVED"
         sub = recordingFile ? recordingFile.replace(/^.*\//, "~/Videos/") : "the recorder did not save a file"
@@ -418,7 +405,6 @@ Scope {
   function handleFinished(token, code, out) {
     if (token === "prep") { parsePrep(out); begin(); return }
     if (token === "restore") { log("restored (" + code + ")"); Qt.quit(); return }
-    if (token === "music") { if (code !== 0 && code !== 143 && code !== 124) log("music exited " + code); return }
     var cb = callbacks[token]
     if (cb) { delete callbacks[token]; cb(code, out); return }
     if (token.indexOf("run:") === 0 && code !== 0 && code !== 124)

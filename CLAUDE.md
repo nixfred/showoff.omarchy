@@ -104,16 +104,14 @@ What that means concretely:
   `~/.local/bin`, desktop entry to `~/.local/share/applications`) and/or an
   AUR `PKGBUILD` so `omarchy-pkg-add showoff-omarchy` works. Decide before v1.
 
-### Pace and music (Fred, 2026-09-26: "it's very slow... speed it up, add some 80's arcade music, punchy and cool. Write it yourself.")
+### Pace (Fred, 2026-09-26: "it's very slow... speed it up")
 
 - `Engine.pace` = 0.7 scales every act timing; `readMs`/`keycapMs` dwells are
   raw (never scaled) so text stays readable. Pickers self-drive after 3.5 s of
   no input instead of waiting 25 s.
-- Music: **Insert Coin**, composed by Larry, score + synth in
-  `tools/compose.ts` (bun), rendered to `app/assets/insert-coin.ogg`
-  (45 s loop, 628 KB), played by `exec mpv --loop-file=inf` as a Runner job
-  so killing the job stops it. The X cut records with `--with-desktop-audio`.
-  `SHOWOFF_MUSIC=off` mutes. Verified: mpv runs during the show, gone after.
+- **No music.** An original chiptune ("Insert Coin", tools/compose.ts) was
+  written, shipped in 0.4.0 and removed in 0.4.1 at Fred's word ("remove the
+  music!"). It lives in git history at 3da1587. Don't add sound back unasked.
 
 ### How it runs (Fred, 2026-09-26: "no more menu... just run it")
 
