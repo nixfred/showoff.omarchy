@@ -82,7 +82,8 @@ var ACTS = [
     id: "takeover", title: "Takeover", blurb: "the logo, glowing in your theme", group: "look",
     logo: true, caption: "",
     sub: "no Windows. no macOS. watch this.",
-    until: { ms: 3200 }, hold: 0
+    // ~2 s: just long enough to read the line (Fred: cut the opening in half).
+    until: { ms: 0 }, hold: 0
   },
   {
     id: "browser", title: "omarchy.org", blurb: "a new browser window, one key away", group: "look",
