@@ -12,8 +12,7 @@
 `app/acts.js` run in `AUTO_ORDER` on a stage workspace (the first empty one),
 with live keycaps looked up from the machine's own Hyprland binds, a
 reading-time pacing model, the theme and wallpaper pickers, hand-off acts,
-the QR end card (keep the theme? Y/N) and restore on every exit path. The menu
-(P3) is still a placeholder; install.sh / PKGBUILD (P10) not written.
+the QR end card (keep the theme? Y/N) and restore on every exit path. There is no menu (removed at Fred's word); install.sh / PKGBUILD (P10) not written.
 
 Verified on vic 2026-09-26 (contact sheet of a 122 s run, then drills):
 takeover logo → browser → tiling → workspace flyby → theme picker driven with
@@ -105,21 +104,18 @@ What that means concretely:
   `~/.local/bin`, desktop entry to `~/.local/share/applications`) and/or an
   AUR `PKGBUILD` so `omarchy-pkg-add showoff-omarchy` works. Decide before v1.
 
-### The modes
+### How it runs (Fred, 2026-09-26: "no more menu... just run it")
 
 ```
-showoff                 → splash + countdown "auto show in 5 · any key for the menu"
-                            silence → AUTO: the whole running order (ACTS.md)
-                            any key / click → MENU: pick an act, it runs, back to the menu
-showoff auto            → straight into the full show
-showoff menu            → straight to the menu
-showoff act <id>        → one act, then the menu
-showoff prepare         → install the optional packages once (booth)
+showoff                 → straight into the whole show; it ends by itself and restores
+showoff x               → the ~80 s cut; records itself to ~/Videos for posting
+showoff act <id>[,…]    → rehearse just those acts (a dev tool, not for visitors)
 Esc Esc                 → from anywhere: restore everything, quit
 ```
 
-When the auto show finishes it returns to the menu, so the presenter can
-replay any act on request.
+There is **no menu and no countdown gate**. Both were built and removed the
+same day: Fred started it, pressed a key for the promised menu, and wanted the
+show, not a chooser. Don't bring a menu back without him asking.
 
 ## Naming (Fred, 2026-09-21: "it's not about me")
 

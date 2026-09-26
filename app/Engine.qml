@@ -5,8 +5,7 @@ import "acts.js" as Acts
 // The show's state machine (PLAN.md §2.2). No UI here: windows bind to the
 // properties, and every shell command goes through the Runner.
 //
-//   prep ─▶ countdown ─silence─▶ auto ─▶ running ─▶ … ─▶ ended ─(8 s)─▶ quit
-//              └─any key─▶ menu
+//   prep ─▶ running ─▶ … ─▶ ended ─(6 s)─▶ quit      (Fred: "no menu, just run it")
 //   running: flag → check → stage → keycap → run → wait → hold → cleanup → next
 //   Esc Esc from ANY state ─▶ quitting: abort → close ours → restore → Qt.quit()
 //
@@ -24,7 +23,6 @@ Scope {
   property string pose: "center"        // center | lower | top
   property bool logo: false
   property bool handoff: false
-  property int countdown: 5
   property var progress: ({ index: 0, total: 0, actId: "" })
   property var carouselItems: []        // [{ title, image, note }]
   property int carouselIndex: 0
@@ -45,7 +43,7 @@ Scope {
   property string recordingFile: ""
 
   // ---- internal ----------------------------------------------------------
-  property string startMode: "countdown"
+  property string startMode: "auto"
   property string startAct: ""
   property var queue: []
   property int index: -1
@@ -197,25 +195,11 @@ Scope {
 
   function begin() {
     if (startMode === "x") runX()
-    else if (startMode === "auto") runAuto()
-    else if (startMode === "menu") toMenu()
     else if (startMode === "act") runOne(startAct)
-    else { state = "countdown"; caption = "SHOWOFF OMARCHY"; sub = ""; countdown = 5; countdownTimer.start() }
-  }
-
-  function interact() { if (state === "countdown") toMenu() }
-
-  function toMenu() {
-    countdownTimer.stop()
-    state = "menu"
-    pose = "center"
-    caption = "SHOWOFF OMARCHY"
-    sub = "Enter runs the whole show   ·   Esc Esc to leave"
-    keycap = ""
+    else runAuto()
   }
 
   function runAuto() {
-    countdownTimer.stop()
     queue = Acts.AUTO_ORDER.slice()
     index = -1
     next()
@@ -226,7 +210,6 @@ Scope {
   // recording, then play X_ORDER. end() stops the recorder BEFORE restoring,
   // so the restore never lands in the video.
   function runX() {
-    countdownTimer.stop()
     x = true
     state = "running"
     caption = ""
@@ -254,7 +237,6 @@ Scope {
   }
 
   function runOne(ids) {
-    countdownTimer.stop()
     var list = String(ids).split(",").filter(Boolean)
     var bad = list.filter(function(id) { return !Acts.byId(id) })
     if (!list.length || bad.length) { state = "ended"; caption = "NO SUCH ACT"; sub = bad.join(", ") + "  ·  Esc Esc to leave"; return }
@@ -273,7 +255,7 @@ Scope {
     caption = ""
     sub = "omarchy.org"
     log("show ended")
-    if (!x) { after(8000, quit); return }
+    if (!x) { after(6000, quit); return }
     // X cut: hold the logo for the last frames, then stop the recorder, then
     // say where the file is (after the recording, so it is not in the video).
     after(3000, function() {
@@ -425,9 +407,6 @@ Scope {
   }
 
   function keyPressed(name) {
-    if (state === "countdown") { interact(); return }
-    // Until the act menu exists, Enter from the menu screen starts the show.
-    if (state === "menu" && (name === "Return" || name === "Enter")) { runAuto(); return }
     if (keyHandler) keyHandler(name)
   }
 
@@ -452,7 +431,6 @@ Scope {
       try { abortCmd = act.abort(engine) || "" } catch (err) { log("abort failed: " + err) }
     }
     gen++
-    countdownTimer.stop()
     state = "quitting"
     logo = false
     pose = "center"
@@ -480,15 +458,6 @@ Scope {
 
   property Component delayComponent: Component { Timer { repeat: false } }
 
-  Timer {
-    id: countdownTimer
-    interval: 1000
-    repeat: true
-    onTriggered: {
-      engine.countdown -= 1
-      if (engine.countdown <= 0) { stop(); engine.runAuto() }
-    }
-  }
   Timer {
     id: escResetTimer
     interval: 1500

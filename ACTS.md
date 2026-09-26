@@ -50,8 +50,7 @@ while the menu keeps the full ones — decide after the first end-to-end run.
 | 21 | QR End Card | A18 | send-off |
 | — | **Keycap Karaoke** runs as a layer over every act, not as a step | A1 | everywhere |
 
-After the auto show ends (or is stopped) the app returns to the **menu**, so
-the presenter can replay any single act on request.
+When the show ends it puts everything back and exits. There is no menu.
 
 ## Infrastructure (not acts, but "do them all" includes these)
 
@@ -60,18 +59,6 @@ the presenter can replay any single act on request.
 | A17 | **Camera Roll** — the show records itself; the end card offers the MP4 | "send this to yourself"; free marketing every run |
 | A19 | **Booth / Attract Mode** — loops on idle, everything restored after | unattended at a meetup table |
 | B1 | **Voice** — local TTS reads the captions; whoosh per act. **Off by default** | booth without a presenter; Fred's rule: voice gets old |
-
-## The menu
-
-Any key or click during the countdown, or `showoff menu`, opens it. A grid of
-acts the presenter can pick with arrows/Enter or the mouse; each runs and
-returns to the menu. Grouped:
-
-- **Look** — Tiling Ballet · Workspace Flyby · Gaps & Animations · Screensaver
-- **Hand them the keyboard** — Pick the theme · Pick a wallpaper · Launch an app
-- **Theming** — Theme Roulette · Wallpaper Rain · Night Shift
-- **Under the hood** — One-Line Install + btop · Terminal Aquarium · Fastfetch · Web Apps · Emoji + Clipboard · Menu Tour · Neovim · Local AI
-- **Send-off** — QR End Card · Run the whole show
 
 ## The full catalogue
 

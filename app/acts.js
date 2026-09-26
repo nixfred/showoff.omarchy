@@ -76,13 +76,13 @@ function terminalName(e, then) {
 var ACTS = [
   // ---------------------------------------------------------------- look
   {
-    id: "takeover", title: "Takeover", group: "look",
+    id: "takeover", title: "Takeover", blurb: "the logo, glowing in your theme", group: "look",
     logo: true, caption: "",
     sub: "no Windows. no macOS. watch this.",
     until: { ms: 3200 }, hold: 0
   },
   {
-    id: "browser", title: "omarchy.org", group: "look",
+    id: "browser", title: "omarchy.org", blurb: "a new browser window, one key away", group: "look",
     caption: "THIS IS OMARCHY", sub: "your browser, one keystroke away",
     keycapBind: "Browser", keycap: "SUPER + SHIFT + RETURN",
     requires: ["omarchy-launch-browser"],
@@ -92,7 +92,7 @@ var ACTS = [
     hold: 6500, cleanup: "close-ours"
   },
   {
-    id: "tiling", title: "Tiling", group: "look",
+    id: "tiling", title: "Tiling", blurb: "windows arrange themselves", group: "look",
     caption: "NO MORE DRAGGING WINDOWS", sub: "",
     requires: ["omarchy-launch-terminal"],
     cleanup: "close-ours",
@@ -130,7 +130,7 @@ var ACTS = [
     hold: 400
   },
   {
-    id: "workspaces", title: "Workspaces", group: "look",
+    id: "workspaces", title: "Workspaces", blurb: "ten desktops, instant", group: "look",
     caption: "TEN DESKTOPS. ZERO WAITING.", sub: "",
     requires: ["omarchy-launch-terminal"],
     cleanup: "close-ours",
@@ -164,7 +164,7 @@ var ACTS = [
 
   // --------------------------------------------------------------- drive
   {
-    id: "theme-pick", title: "You pick the theme", group: "drive",
+    id: "theme-pick", title: "Pick a theme", blurb: "the visitor drives, live", group: "drive",
     caption: "NOW YOU PICK THE THEME", sub: "← →  to look around   ·   Enter to keep it",
     pose: "top",
     run: function(e) {
@@ -193,7 +193,7 @@ var ACTS = [
     hold: 0
   },
   {
-    id: "roulette", title: "Theme roulette", group: "drive",
+    id: "roulette", title: "Theme roulette", blurb: "six themes in ten seconds", group: "drive",
     caption: "EVERY APP. EVERY COLOR.", sub: "", pose: "lower",
     requires: ["omarchy-theme-set"],
     run: function(e) {
@@ -213,7 +213,7 @@ var ACTS = [
     hold: 0
   },
   {
-    id: "wallpapers", title: "Wallpapers", group: "drive",
+    id: "wallpapers", title: "Wallpapers", blurb: "including video ones", group: "drive",
     caption: "WALLPAPERS, TOO.", sub: "even video ones", pose: "lower",
     keycapBind: "Background switcher", keycap: "SUPER + CTRL + SPACE",
     requires: ["omarchy-theme-bg-next"],
@@ -228,7 +228,7 @@ var ACTS = [
     hold: 400
   },
   {
-    id: "wallpaper-pick", title: "You pick a wallpaper", group: "drive",
+    id: "wallpaper-pick", title: "Pick a wallpaper", blurb: "the visitor drives again", group: "drive",
     caption: "YOUR TURN AGAIN", sub: "← →  pick a wallpaper   ·   Enter to keep it", pose: "top",
     requires: ["omarchy-theme-bg-set"],
     run: function(e) {
@@ -256,7 +256,7 @@ var ACTS = [
 
   // ---------------------------------------------------------------- hood
   {
-    id: "install-btop", title: "One-line install", group: "hood",
+    id: "install-btop", title: "Install an app", blurb: "one line, no app store", group: "hood",
     caption: "INSTALLING AN APP", sub: "no app store. no wizard. no reboot.",
     keep: true,
     run: function(e) {
@@ -285,7 +285,7 @@ var ACTS = [
     hold: 0
   },
   {
-    id: "aquarium", title: "Terminal aquarium", group: "hood",
+    id: "aquarium", title: "Aquarium", blurb: "cava, cmatrix, asciiquarium", group: "hood",
     caption: "THE TERMINAL IS A PLAYGROUND", sub: "", pose: "lower",
     requiresPkg: ["cava", "cmatrix", "asciiquarium"], anyPkg: true,
     cleanup: "close-ours",
@@ -304,7 +304,7 @@ var ACTS = [
     hold: 0
   },
   {
-    id: "fastfetch", title: "Under the hood", group: "hood",
+    id: "fastfetch", title: "Under the hood", blurb: "the whole system at a glance", group: "hood",
     caption: "THE WHOLE SYSTEM, AT A GLANCE", sub: "",
     requires: ["fastfetch", "omarchy-launch-floating-terminal-with-presentation"],
     run: "omarchy-launch-floating-terminal-with-presentation fastfetch",
@@ -313,7 +313,7 @@ var ACTS = [
     cleanup: "close-ours"
   },
   {
-    id: "webapp", title: "Web apps", group: "hood",
+    id: "webapp", title: "Web apps", blurb: "YouTube as its own window", group: "hood",
     caption: "WEBSITES BECOME APPS", sub: "no browser tabs, no Electron",
     requires: ["omarchy-launch-webapp"],
     precheck: "b=$(xdg-settings get default-web-browser); case $b in google-chrome*|brave*|microsoft-edge*|opera*|vivaldi*|helium*|chromium*) true;; *) command -v chromium;; esac",
@@ -324,7 +324,7 @@ var ACTS = [
     cleanup: "close-ours"
   },
   {
-    id: "emoji-clipboard", title: "Emoji + clipboard", group: "hood",
+    id: "emoji-clipboard", title: "Emoji + clipboard", blurb: "both built in", group: "hood",
     caption: "EMOJI PICKER. BUILT IN.", sub: "",
     requires: ["omarchy-menu-emoji", "omarchy-menu-clipboard", "omarchy-shell"],
     run: function(e) {
@@ -349,7 +349,7 @@ var ACTS = [
     hold: 0
   },
   {
-    id: "menu-tour", title: "The Omarchy menu", group: "hood",
+    id: "menu-tour", title: "The menu", blurb: "one menu for everything", group: "hood",
     caption: "ONE MENU FOR EVERYTHING", sub: "",
     requires: ["omarchy-menu"],
     run: function(e) {
@@ -375,7 +375,7 @@ var ACTS = [
     hold: 0
   },
   {
-    id: "nightshift", title: "Night light", group: "hood",
+    id: "nightshift", title: "Night light", blurb: "warm screen, one key", group: "hood",
     caption: "NIGHT SHIFT? ONE KEY.", sub: "",
     requires: ["omarchy-toggle-nightlight"],
     run: function(e) {
@@ -393,7 +393,7 @@ var ACTS = [
     hold: 0
   },
   {
-    id: "gaps", title: "Gaps and fullscreen", group: "hood",
+    id: "gaps", title: "Gaps + fullscreen", blurb: "tight or airy", group: "hood",
     caption: "TIGHT OR AIRY. YOUR CALL.", sub: "", pose: "lower",
     requires: ["omarchy-hyprland-window-gaps-toggle", "omarchy-launch-terminal"],
     cleanup: "close-ours",
@@ -438,7 +438,7 @@ var ACTS = [
 
   // --------------------------------------------------------------- hands
   {
-    id: "you-launch", title: "You launch an app", group: "hands",
+    id: "you-launch", title: "Your turn", blurb: "the visitor launches an app", group: "hands",
     caption: "YOUR TURN", sub: "",
     cleanup: "close-ours",
     run: function(e) {
@@ -465,7 +465,7 @@ var ACTS = [
     hold: 0
   },
   {
-    id: "neovim", title: "Neovim", group: "hands", flag: "dev",
+    id: "neovim", title: "Neovim", blurb: "an editor that matches", group: "hands", flag: "dev",
     caption: "AN EDITOR THAT MATCHES", sub: "already themed. zero setup.",
     keycapBind: "Terminal", keycap: "SUPER + RETURN",
     requires: ["nvim", "omarchy-launch-terminal"],
@@ -474,7 +474,7 @@ var ACTS = [
     holdPose: "lower", hold: 4500, cleanup: "close-ours"
   },
   {
-    id: "local-ai", title: "Local AI", group: "hands",
+    id: "local-ai", title: "Local AI", blurb: "runs on this laptop", group: "hands",
     caption: "AI THAT RUNS ON THIS LAPTOP", sub: "no cloud. no account.",
     requires: ["ollama", "omarchy-launch-floating-terminal-with-presentation"],
     precheck: "curl -sf --max-time 2 localhost:11434/api/tags | jq -e '.models | length > 0'",
@@ -488,7 +488,7 @@ var ACTS = [
 
   // ------------------------------------------------------------- sendoff
   {
-    id: "screensaver", title: "Screensaver", group: "sendoff",
+    id: "screensaver", title: "Screensaver", blurb: "even the screensaver", group: "sendoff",
     caption: "", sub: "even the screensaver", pose: "lower",
     requires: ["ttfx", "omarchy-launch-screensaver"],
     run: "omarchy-launch-screensaver force",
@@ -496,7 +496,7 @@ var ACTS = [
     hold: 6000, cleanup: "close-ours"
   },
   {
-    id: "qr", title: "Take it home", group: "sendoff",
+    id: "qr", title: "Take it home", blurb: "QR codes, keep the theme?", group: "sendoff",
     caption: "", sub: "",
     run: function(e) {
       e.endTheme = e.x ? "" : e.titleOf(e.chosenTheme || "")

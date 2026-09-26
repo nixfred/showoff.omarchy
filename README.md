@@ -1,6 +1,6 @@
 # Showoff Omarchy
 
-> **Early.** The whole show runs. The act menu and a stock-box test pass are next.
+> **Early.** The whole show runs. A clean stock-box test pass is next.
 
 An application that takes over your screen and shows Omarchy off to someone
 who has only ever used Windows or macOS. Big glowing captions over your real
@@ -53,9 +53,8 @@ pacman owns every file. It lands in your launcher as **Showoff Omarchy**.
 Remove it with `sudo pacman -R showoff-omarchy`.
 
 ```
-showoff        countdown, then the whole show (any key: menu)
+showoff        the whole show, about 4 minutes; Esc twice stops it any time
 showoff x      the 80 second cut; records itself to ~/Videos for posting
-showoff auto   straight into the whole show
 ```
 
 ## Repo map
@@ -63,7 +62,7 @@ showoff auto   straight into the whole show
 - [CLAUDE.md](CLAUDE.md) — the project brief and the decisions made.
 - [RESEARCH.md](RESEARCH.md) — what Omarchy and Quickshell give us, verified
   with file anchors.
-- [ACTS.md](ACTS.md) — the spine, all 22 acts, running order, menu groups.
+- [ACTS.md](ACTS.md) — the spine, every act, and the running order.
 - `bin/showoff` — launcher. `app/shell.qml` — the application.
   `showoff-omarchy.desktop` — launcher entry.
 

@@ -46,7 +46,10 @@ ShellRoot {
 
   Engine { id: engine }
 
-  Component.onCompleted: engine.start(Quickshell.env("SHOWOFF_MODE") || "countdown",
+  property bool mapped: false
+  Timer { interval: 450; running: true; onTriggered: root.mapped = true }
+
+  Component.onCompleted: engine.start(Quickshell.env("SHOWOFF_MODE") || "auto",
                                       Quickshell.env("SHOWOFF_ACT") || "",
                                       Quickshell.env("SHOWOFF_FLAGS") || "")
 
@@ -54,6 +57,8 @@ ShellRoot {
     switch (event.key) {
     case Qt.Key_Left: return "Left"
     case Qt.Key_Right: return "Right"
+    case Qt.Key_Up: return "Up"
+    case Qt.Key_Down: return "Down"
     case Qt.Key_Return: return "Return"
     case Qt.Key_Enter: return "Enter"
     case Qt.Key_Space: return " "
@@ -73,6 +78,12 @@ ShellRoot {
       color: "transparent"
       WlrLayershell.namespace: "showoff-omarchy"
       WlrLayershell.layer: WlrLayer.Overlay
+      // Hyprland grants exclusive keyboard focus when a layer surface MAPS.
+      // Started from the launcher, the Apps menu (another exclusive overlay)
+      // is still up at that moment, and when it closes focus goes back to the
+      // last window, not to us. So the windows map only once the launcher has
+      // had time to close (root.mapped, below).
+      visible: root.mapped
       WlrLayershell.keyboardFocus: engine.handoff ? WlrKeyboardFocus.None : WlrKeyboardFocus.Exclusive
       exclusionMode: ExclusionMode.Ignore
 
@@ -101,7 +112,8 @@ ShellRoot {
         Behavior on opacity { NumberAnimation { duration: 350 } }
       }
 
-      MouseArea { anchors.fill: parent; enabled: !engine.handoff; onClicked: engine.interact() }
+      // Swallow clicks so nothing under the show gets them (except in hand-offs).
+      MouseArea { anchors.fill: parent; enabled: !engine.handoff }
 
       // The headline stack: logo, keycap, caption. It slides between poses.
       Item {
@@ -157,20 +169,13 @@ ShellRoot {
             id: caption
             anchors.horizontalCenter: parent.horizontalCenter
             text: engine.caption
-            sub: engine.state === "countdown" ? "" : engine.sub
+            sub: engine.sub
             accent: root.accent
             foreground: root.foreground
             areaWidth: win.width
             areaHeight: win.compact ? win.height * 0.55 : win.height
           }
 
-          Countdown {
-            anchors.horizontalCenter: parent.horizontalCenter
-            visible: engine.state === "countdown"
-            seconds: engine.countdown
-            foreground: root.foreground
-            areaHeight: win.height
-          }
         }
       }
 
@@ -212,6 +217,7 @@ ShellRoot {
       }
 
       Item {
+        id: keyCatcher
         anchors.fill: parent
         focus: true
         Keys.priority: Keys.BeforeItem
