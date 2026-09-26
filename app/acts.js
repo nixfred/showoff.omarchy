@@ -49,12 +49,15 @@ function themeSetter(e) {
 // Left/Right/Enter over a carousel, live-applying after a pause, with an
 // idle timeout so an unattended booth never stalls.
 function picker(e, items, start, apply, onPick, idleMs) {
-  var i = start, g = 0
+  var i = start, g = 0, touched = false
   e.carousel(items, i)
+  // Nobody at the keyboard? Drive it ourselves, keys shown as keycaps.
+  e.after(3500, function() { if (!touched) e.autoKeys(["Right", "Right", "Right", "Return"], 1300) })
   function idle() { var mine = ++g; e.after(idleMs, function() { if (mine === g) onPick(i, true) }) }
   function settle() { var mine = g; e.after(450, function() { if (mine === g) apply(i) }) }
   idle()
-  e.onKey(function(k) {
+  e.onKey(function(k, auto) {
+    if (!auto) touched = true
     if (k === "Left" || k === "Right") {
       i = (i + (k === "Left" ? -1 : 1) + items.length) % items.length
       e.carousel(items, i)
@@ -186,7 +189,6 @@ var ACTS = [
               setter.set(list[i].slug)
               e.after(2800, e.done)
             }, 25000)
-          if (e.x) e.after(1200, function() { e.autoKeys(["Right", "Right", "Right", "Return"], 1300) })
         }, 3000)
       })
     },
@@ -200,7 +202,7 @@ var ACTS = [
       loadThemes(e, function() {
         var others = e.themeList.filter(function(t) { return t.slug !== e.chosenTheme })
         var picks = []
-        for (var k = 0; k < (e.x ? 4 : 6) && others.length; k++) picks.push(others.splice(Math.floor(Math.random() * others.length), 1)[0])
+        for (var k = 0; k < (e.x ? 4 : 5) && others.length; k++) picks.push(others.splice(Math.floor(Math.random() * others.length), 1)[0])
         if (e.chosenTheme) picks.push({ slug: e.chosenTheme, title: e.titleOf(e.chosenTheme) })
         function go(n) {
           if (n === picks.length) { e.sayThen("AND BACK TO YOURS.", picks.length ? picks[picks.length - 1].title : "", e.done); return }
@@ -453,7 +455,7 @@ var ACTS = [
           e.setPose("lower")
           e.say("YOU JUST DID THAT.", "that's the whole trick. keys, not clicks.")
           e.after(3500, e.done)
-        }, 40000, function() {
+        }, 20000, function() {
           e.keycap = ""
           e.launch("omarchy-menu close")
           e.setHandoff(false)
@@ -482,7 +484,7 @@ var ACTS = [
     run: "m=$(curl -sf localhost:11434/api/tags | jq -r '.models | sort_by(.size) | .[0].name'); " +
          "omarchy-launch-floating-terminal-with-presentation \"ollama run $m 'In two short sentences: what is Omarchy, the Linux setup by DHH?'\"",
     until: { window: true, timeoutMs: 10000 },
-    holdPose: "lower", holdSub: "this answer never left the machine", hold: 15000,
+    holdPose: "lower", holdSub: "this answer never left the machine", hold: 12000,
     cleanup: "close-ours"
   },
 
@@ -515,7 +517,7 @@ var ACTS = [
         else if (c === "n") finish(false)
       })
       var mine = ++g
-      e.after(20000, function() { if (mine === g) finish(false) })
+      e.after(11000, function() { if (mine === g) finish(false) })
     },
     hold: 0
   },

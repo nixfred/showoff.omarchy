@@ -40,6 +40,12 @@ Scope {
   property var data: ({})               // per-act scratch, reset each act
   property bool x: false                // `showoff x`: the ~80 s cut for posting
   property bool recording: false
+  // Global pace (Fred: "it's very slow... speed it up"). Every act timing is
+  // scaled by this; reading and keycap dwells are computed separately (raw)
+  // so text never drops below readable.
+  readonly property real pace: 0.7
+  property bool musicOn: (Quickshell.env("SHOWOFF_MUSIC") || "on") !== "off"
+  readonly property string musicFile: String(Qt.resolvedUrl("assets/insert-coin.ogg")).replace(/^file:\/\//, "")
   property string recordingFile: ""
 
   // ---- internal ----------------------------------------------------------
@@ -70,9 +76,9 @@ Scope {
   // be on the screen"). Big words read slower than small ones; a keycap has to
   // be read AND recognised as keys, so it gets its own, longer dwell.
   function words(t) { t = String(t || "").trim(); return t ? t.split(/\s+/).length : 0 }
-  function readMs(c, s) { return Math.min(7000, Math.max(1800, 1200 + words(c) * 300 + words(s) * 230)) }
-  function keycapMs(combo) { return 2000 + 350 * String(combo).split(" + ").length }
-  function sayThen(c, s, fn) { say(c, s); after(readMs(c, s), fn) }
+  function readMs(c, s) { return Math.min(5000, Math.max(1300, 900 + words(c) * 220 + words(s) * 160)) }
+  function keycapMs(combo) { return 1400 + 250 * String(combo).split(" + ").length }
+  function sayThen(c, s, fn) { say(c, s); after(readMs(c, s), fn, true) }
   function setPose(p) { pose = p }
   function setHandoff(on) { handoff = on }
   function done() {
@@ -92,9 +98,10 @@ Scope {
   // returns at once and the app belongs to nobody.
   function detached(cmd) { return "setsid -f bash -lc " + q(cmd) + " >/dev/null 2>&1 </dev/null" }
   function launch(cmd) { sh(detached(cmd), null, 5000) }
-  function after(ms, fn) {
+  // raw = true: exact milliseconds (reading dwells); otherwise scaled by pace.
+  function after(ms, fn, raw) {
     var g = gen
-    var t = delayComponent.createObject(engine, { interval: Math.max(1, ms) })
+    var t = delayComponent.createObject(engine, { interval: Math.max(1, Math.round(raw ? ms : ms * pace)) })
     t.triggered.connect(function() { t.destroy(); if (g === gen) fn() })
     t.start()
   }
@@ -120,7 +127,7 @@ Scope {
   function showKeycap(combo, ms, then) {
     if (!combo) { if (then) then(); return }
     keycap = combo
-    after(ms || keycapMs(combo), function() { if (then) then() })
+    after(ms || keycapMs(combo), function() { if (then) then() }, !ms)
   }
   function bind(description, fallback) { return binds[description] || fallback || "" }
   function onKey(fn) { keyHandler = fn }
@@ -131,7 +138,7 @@ Scope {
       if (n === keys.length || !keyHandler) return
       var k = keys[n], label = k === "Right" ? "→" : k === "Left" ? "←" : k === "Return" ? "ENTER" : k
       keycap = label
-      after(gapMs * 0.45, function() { if (keyHandler) keyHandler(k); after(gapMs * 0.55, function() { keycap = ""; go(n + 1) }) })
+      after(gapMs * 0.45, function() { if (keyHandler) keyHandler(k, true); after(gapMs * 0.55, function() { keycap = ""; go(n + 1) }) })
     }
     go(0)
   }
@@ -199,7 +206,16 @@ Scope {
     else runAuto()
   }
 
+  // "Insert Coin" (tools/compose.ts), looped by mpv, which ships in
+  // omarchy-base. `exec` makes the job BE mpv, so killing the job stops it.
+  function startMusic() {
+    if (!musicOn) return
+    runner.run("music", "command -v mpv >/dev/null && [ -f " + q(musicFile) + " ] && exec mpv --no-video --really-quiet --no-terminal --loop-file=inf --volume=80 " + q(musicFile), 3600000)
+  }
+  function stopMusic() { runner.kill("music") }
+
   function runAuto() {
+    startMusic()
     queue = Acts.AUTO_ORDER.slice()
     index = -1
     next()
@@ -214,12 +230,12 @@ Scope {
     state = "running"
     caption = ""
     sub = ""
-    launch("omarchy-capture-screenrecording --fullscreen")
+    launch("omarchy-capture-screenrecording --fullscreen" + (musicOn ? " --with-desktop-audio" : ""))
     var tries = 0
     function wait() {
       sh("pgrep -f '^gpu-screen-recorder' >/dev/null", function(code) {
-        if (code === 0) { recording = true; log("recording"); after(700, function() { queue = Acts.X_ORDER.slice(); index = -1; next() }) }
-        else if (++tries > 20) { log("recorder never started — running the cut unrecorded"); queue = Acts.X_ORDER.slice(); index = -1; next() }
+        if (code === 0) { recording = true; log("recording"); startMusic(); after(700, function() { queue = Acts.X_ORDER.slice(); index = -1; next() }) }
+        else if (++tries > 20) { log("recorder never started — running the cut unrecorded"); startMusic(); queue = Acts.X_ORDER.slice(); index = -1; next() }
         else after(250, wait)
       }, 2000)
     }
@@ -240,6 +256,7 @@ Scope {
     var list = String(ids).split(",").filter(Boolean)
     var bad = list.filter(function(id) { return !Acts.byId(id) })
     if (!list.length || bad.length) { state = "ended"; caption = "NO SUCH ACT"; sub = bad.join(", ") + "  ·  Esc Esc to leave"; return }
+    startMusic()
     queue = list
     index = -1
     next()
@@ -255,11 +272,12 @@ Scope {
     caption = ""
     sub = "omarchy.org"
     log("show ended")
-    if (!x) { after(6000, quit); return }
+    if (!x) { after(4000, quit, true); return }
     // X cut: hold the logo for the last frames, then stop the recorder, then
     // say where the file is (after the recording, so it is not in the video).
     after(3000, function() {
       stopRecording(function() {
+        stopMusic()
         logo = false
         caption = "SAVED"
         sub = recordingFile ? recordingFile.replace(/^.*\//, "~/Videos/") : "the recorder did not save a file"
@@ -318,7 +336,7 @@ Scope {
     caption = ""
     sub = "skipping " + act.title + " — " + why
     keycap = ""
-    after(readMs("", sub), next)
+    after(readMs("", sub), next, true)
   }
 
   function present() {
@@ -351,9 +369,9 @@ Scope {
   function hold() {
     if (act.holdPose) pose = act.holdPose
     if (act.holdSub) sub = act.holdSub
-    var ms = act.hold !== undefined ? act.hold : 3000
+    var ms = (act.hold !== undefined ? act.hold : 3000) * pace
     if (typeof act.run !== "function") ms = Math.max(ms, readMs(caption, sub))
-    after(ms, cleanup)
+    after(ms, cleanup, true)
   }
 
   function cleanup() {
@@ -367,7 +385,7 @@ Scope {
     closeOurs(act)
     if (typeof act.cleanup === "function") act.cleanup(engine)
     else if (act.cleanup && act.cleanup !== "close-ours" && act.cleanup !== "none") launch(act.cleanup)
-    after(500, next)
+    after(350, next)
   }
 
   function closeOurs(a) {
@@ -400,6 +418,7 @@ Scope {
   function handleFinished(token, code, out) {
     if (token === "prep") { parsePrep(out); begin(); return }
     if (token === "restore") { log("restored (" + code + ")"); Qt.quit(); return }
+    if (token === "music") { if (code !== 0 && code !== 143 && code !== 124) log("music exited " + code); return }
     var cb = callbacks[token]
     if (cb) { delete callbacks[token]; cb(code, out); return }
     if (token.indexOf("run:") === 0 && code !== 0 && code !== 124)

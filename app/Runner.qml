@@ -27,6 +27,8 @@ Scope {
 
   function forget(token) { delete jobs[token] }
 
+  function kill(token) { if (jobs[token]) { jobs[token].abort(); delete jobs[token] } }
+
   property Component jobComponent: Component {
     Scope {
       id: job
