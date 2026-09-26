@@ -260,7 +260,9 @@ var ACTS = [
   {
     id: "install-btop", title: "Install an app", blurb: "one line, no app store", group: "hood",
     caption: "INSTALLING AN APP", sub: "no app store. no wizard. no reboot.",
-    keep: true,
+    // Closed after its act (Fred, 2026-09-26: "btop doesn't go away after you
+    // show it"). It used to be kept running, per the first brief.
+    cleanup: "close-ours",
     run: function(e) {
       e.sh("command -v btop", function(code) {
         if (code === 0) {

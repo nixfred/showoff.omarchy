@@ -140,8 +140,9 @@ because that is where it lives, not because it's about him.
 - **The overlay is the theme picker.** It handles Left/Right/Enter itself and
   calls `omarchy-theme-set`; it never hands the keyboard to another surface
   for this act, so Esc×2 stays reliable.
-- **btop installs on screen.** `omarchy plugin add`/pacman aren't in play at
-  install time; the presentation terminal *is* the showpiece.
+- **btop installs on screen, then closes after its act.** Nothing runs at
+  install time; the presentation terminal *is* the showpiece. Fred reversed
+  "leave it running" on 2026-09-26: it cluttered every act after it.
 - **The show is data.** An ordered act table (caption, precondition, command,
   wait-until, hold, cleanup); the engine is a small state machine. New acts
   are rows, not code paths.
