@@ -165,6 +165,9 @@ Scope {
     "s=$HOME/.local/state/omarchy/current; " +
     "printf 'T\\t%s\\nB\\t%s\\n' \"$(cat $s/theme.name 2>/dev/null)\" \"$(readlink $s/background 2>/dev/null)\"; " +
     "printf 'W\\t%s\\n' \"$(hyprctl activeworkspace -j 2>/dev/null | jq -r .id)\"; " +
+    // Every monitor's workspace, special workspace and focus: restoring only
+    // the focused one left a second screen on the show's stage workspace.
+    "hyprctl monitors -j 2>/dev/null | jq -r '.[] | \"M\\t\\(.name)\\t\\(.activeWorkspace.id)\\t\\(.specialWorkspace.name)\\t\\(.focused)\"'; " +
     "printf 'O\\t%s\\n' \"$(hyprctl workspaces -j 2>/dev/null | jq -r '[.[] | select(.windows > 0) | .id | tostring] | join(\" \")')\"; " +
     "hyprctl binds -j 2>/dev/null | jq -r '.[] | select(.has_description and .submap == \"\") | \"K\\t\\(.modmask)\\t\\(.key)\\t\\(.description)\"'"
 
@@ -175,12 +178,16 @@ Scope {
       if (f[0] === "T") snapshot.theme = f[1] || ""
       else if (f[0] === "B") snapshot.background = f[1] || ""
       else if (f[0] === "W") snapshot.workspace = f[1] || ""
+      else if (f[0] === "M" && f[1]) snapshot.monitors = snapshot.monitors.concat([{ name: f[1], ws: f[2], special: f[3] || "", focused: f[4] === "true" }])
       else if (f[0] === "O") occupied = (f[1] || "").split(" ")
       else if (f[0] === "K" && f[2] && !b[f[3]]) b[f[3]] = comboOf(parseInt(f[1]), f[2])
     })
     snapshot.recorded = true
     binds = b
     var empties = []
+    // A workspace showing on ANY monitor is not free, even with no windows:
+    // staging there would take over a screen someone is looking at.
+    snapshot.monitors.forEach(function(m) { occupied.push(String(m.ws)) })
     for (var n = 1; n <= 10; n++) if (occupied.indexOf(String(n)) < 0) empties.push(String(n))
     stageWs = empties.length ? empties[0] : ""
     spareWs = empties.slice(1)

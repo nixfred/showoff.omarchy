@@ -1,7 +1,7 @@
 # Maintainer: Fred Nix <frednix@gmail.com>
 
 pkgname=showoff-omarchy
-pkgver=0.4.4
+pkgver=0.4.5
 pkgrel=1
 pkgdesc='Show Omarchy off to a Windows or Mac person: a takeover show with live theme picking. Esc twice to stop.'
 arch=('any')
